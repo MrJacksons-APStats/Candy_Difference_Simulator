@@ -403,7 +403,7 @@ td.v{font-weight:700}
       labelSize:19,tickSize:14,minArea:230,maxArea:520,minDec:2,muLabel:`μ = p₁ − p₂ = ${fmt(muD,4)}`});
     $("svgD").setAttribute("aria-label",`Dotplot of ${k} simulated differences in sample proportions`);
     const sDs=summary(dv);
-    $("statsD").innerHTML=statsHtml(DIFF,sDs).replace(/samples/,"pairs").replace("1 sample","1 pair");
+    $("statsD").innerHTML=sDs?`<span>${sDs.k===1?"1 pair":`${sDs.k} pairs`} of samples</span>`:"";
 
     if(pred&&k&&params){
       const hits=dv.filter(pred.test).length;
@@ -420,10 +420,7 @@ td.v{font-weight:700}
       h+=`<dt>Variability</dt><dd><span class="m">σ</span> = √( ${PP(1)}(1 − ${PP(1)})/${NN(1)} + ${PP(2)}(1 − ${PP(2)})/${NN(2)} ) = √( ${p1}(${fmt(1-p1,4)})/${n1} + ${p2}(${fmt(1-p2,4)})/${n2} ) = <b>${sD.toFixed(4)}</b></dd>`;
       h+=`<dt>Shape</dt><dd>Large Counts: ${lcLine(n1,p1,1)}; ${lcLine(n2,p2,2)}. ${lcOk?'<span class="ok">All four are ≥ 10, so approximately Normal.</span>':'<span class="bad">At least one is under 10, so not approximately Normal.</span>'}</dd>`;
       h+=`<dt>10% condition</dt><dd>${NN(1)} = ${n1} is less than 10% of all M&amp;Ms and ${NN(2)} = ${n2} is less than 10% of all Skittles. <span class="ok">Met.</span></dd>`;
-      if(sDs&&sDs.sd!=null){
-        const s1s=summary(samples.map(s=>s.ph1)).sd, s2s=summary(samples.map(s=>s.ph2)).sd;
-        h+=`<dt>Variances add</dt><dd>From the simulation: √(SD₁² + SD₂²) = √(${s1s.toFixed(4)}² + ${s2s.toFixed(4)}²) = <b>${Math.sqrt(s1s*s1s+s2s*s2s).toFixed(4)}</b>, compared with the simulated SD of the differences, <b>${sDs.sd.toFixed(4)}</b>.</dd>`;
-      }
+      h+=`<dt>Variances add</dt><dd><span class="m">σ</span> = √( <span class="m">σ</span><sub>p̂₁</sub>² + <span class="m">σ</span><sub>p̂₂</sub>² ) = √( ${s1.toFixed(4)}² + ${s2.toFixed(4)}² ) = <b>${sD.toFixed(4)}</b>, using the two SDs in the Explore section below.</dd>`;
       if(pred&&sD>0){
         const z=(pred.v-muD)/sD, pr=pred.dir==="ge"?1-normCdf(z):normCdf(z);
         h+=`<dt>Normal probability</dt><dd><span class="m">z</span> = (${fmt(pred.v,4)} − ${fmt(muD,4)}) / ${sD.toFixed(4)} = <b>${fmtFixed(z,2)}</b><br>P(${DIFF} ${pred.dir==="ge"?"≥":"≤"} ${fmt(pred.v,4)}) ≈ P(<span class="m">z</span> ${pred.dir==="ge"?"≥":"≤"} ${fmtFixed(z,2)}) = <b>${pr.toFixed(4)}</b></dd>`;
@@ -441,7 +438,7 @@ td.v{font-weight:700}
       drawPlot({svg:$(sv),vals,step:1/n,mu:p,sd,axis:sharedAx,label:`Proportion of orange ${name} (n = ${n})`,symbol:"phat",pred:null,theory:tI,
         labelSize:28,tickSize:24,minArea:300,maxArea:640,minDec:1,muLabel:`μ = p = ${fmt(p,4)}`});
       $(sv).setAttribute("aria-label",`Dotplot of ${vals.length} simulated proportions of orange ${name}`);
-      $(st).innerHTML=statsHtml(PH(i),summary(vals));
+      $(st).innerHTML=`<span>${vals.length===1?"1 sample":`${vals.length} samples`}</span><span><span class="m">μ</span><sub>p̂${i===1?"₁":"₂"}</sub> = <b>${revealed?fmt(p,4):"?"}</b></span><span><span class="m">σ</span><sub>p̂${i===1?"₁":"₂"}</sub> = <b>${revealed?sd.toFixed(4):"?"}</b></span>`+(revealed?"":`<span class="note" style="margin:0">Shown after the true proportions are revealed.</span>`);
       $(th).classList.toggle("hidden",!tI);
       if(tI){
         const a=n*p,b=n*(1-p), ok=a>=10&&b>=10;
